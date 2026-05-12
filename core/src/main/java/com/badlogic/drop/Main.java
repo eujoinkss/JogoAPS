@@ -78,6 +78,8 @@ public class Main implements ApplicationListener {
         // DeltaTime = O tempo entre os frames
         float delta = Gdx.graphics.getDeltaTime();
         
+        
+        // Mover o personagem para a direita
         if(Gdx.input.isKeyPressed(Input.Keys.D) || Gdx.input.isKeyPressed(Input.Keys.RIGHT)){
             
             protaSprite.translateX(velocidade * delta);
@@ -86,7 +88,7 @@ public class Main implements ApplicationListener {
                 protaSprite.flip(true, false);
                 olhandoDireita = true;
             }
-            
+          // Mover o personagem para a esquerda
         } else if(Gdx.input.isKeyPressed(Input.Keys.A) || Gdx.input.isKeyPressed(Input.Keys.LEFT)){
             
             protaSprite.translateX(-velocidade * delta);

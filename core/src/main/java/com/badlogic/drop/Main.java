@@ -4,6 +4,7 @@ import com.badlogic.gdx.ApplicationListener;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
@@ -12,13 +13,16 @@ import com.badlogic.gdx.utils.viewport.FitViewport;
 
 /** {@link com.badlogic.gdx.ApplicationListener} implementation shared by all platforms. */
 public class Main implements ApplicationListener {
-    boolean olhandoDireita = true;
+    private boolean isOnGround = true;
+    private boolean olhandoDireita = true;
+    private float velocidadeY = 3f;
     // Instanciando objetos da biblioteca GDX
-    Texture background;
-    Texture prota;
-    Sprite protaSprite;
-    FitViewport viewport;
-    SpriteBatch spriteBatch;
+    private Texture background;
+    private Texture prota;
+    private Sprite protaSprite;
+    private FitViewport viewport;
+    private SpriteBatch spriteBatch;
+    private OrthographicCamera camera;
     
     @Override
     public void create() {
@@ -74,7 +78,11 @@ public class Main implements ApplicationListener {
     }
     
     private void input(){
-        float velocidade = 25f;
+        final float chaoY = 0;
+        final int gravidade = 15;
+        final int forcaPulo = 6;
+        float velocidade = 6f;
+        
         // DeltaTime = O tempo entre os frames
         float delta = Gdx.graphics.getDeltaTime();
         
@@ -98,7 +106,25 @@ public class Main implements ApplicationListener {
                 olhandoDireita = false;
             }
             
+        } 
+        
+        if(Gdx.input.isKeyPressed(Input.Keys.SPACE) && isOnGround){
+            
+            velocidadeY = forcaPulo;
+            isOnGround = false;
+            
         }
+        velocidadeY -= gravidade * delta;
+        protaSprite.setY(protaSprite.getY() + velocidadeY * delta);
+        
+        if(protaSprite.getY() <= chaoY){
+            
+            protaSprite.setY(chaoY);
+            velocidadeY = 0;
+            isOnGround = true;
+        }
+        
+        System.out.println(delta);
     }
     
     private void logic(){

@@ -28,16 +28,19 @@ public class Main implements ApplicationListener {
     public void create() {
         // Método para "Construir" o jogo
         // Atribuindo valores aos objetos do tipo "Textura", esses valores são imagem salvas no diretório do projeto
-        background = new Texture("background_placeholder.png");
+        background = new Texture("fundo.png");
         prota = new Texture("Valdomir0.png");
         
         spriteBatch = new SpriteBatch();
+        // O objeto "OrthographicCamera" é usado para criar uma câmera dinâmica que segue o personagem horizontalmente
+        camera = new OrthographicCamera();
         // viewport controlará a janela que é usada para visualizarmos e interagirmos com o jogo
-        viewport = new FitViewport(10,7);
+        viewport = new FitViewport(100,70, camera);
         
         // Aqui é criado um sprite do protagonista usando a textura anteriormene atribuida, para que ele possa ser controlado
         protaSprite = new Sprite(prota);
-        protaSprite.setSize(1, 1);
+        protaSprite.setSize(8, 8);
+        protaSprite.setPosition(0, 0);
     }
 
     @Override
@@ -58,19 +61,25 @@ public class Main implements ApplicationListener {
     }
     
     private void draw(){
+        // Como o fundo se repete três vezes para dar uma sensação de um mapa grande, colocamos que a largura do mundo é o triplo da largura do fundo
+        final float largura = background.getWidth() * 3;
+        final float altura = viewport.getWorldHeight();
+        float cameraX = protaSprite.getX() + protaSprite.getWidth() / 2;
         // método para "desenhar" o mundo, mostrando todos os elementos gráficos
         //Limpando a tela para começar a exibição
         ScreenUtils.clear(Color.BLACK);
-        // Aqui garantimos que tudo seja desenhado na tela exibida para o usuário
-        viewport.apply();
-        spriteBatch.setProjectionMatrix(viewport.getCamera().combined);
+        // Aqui setamos a càmera para acompanhar o sprite do jogador e para parar de seguir nos extremos do mapa
+        cameraX = Math.max(viewport.getWorldWidth() / 2, cameraX);
+        cameraX = Math.min(largura - viewport.getWorldWidth() / 2, cameraX);
+        camera.position.x = cameraX;
+        camera.update();
+        spriteBatch.setProjectionMatrix(camera.combined);
         // Aqui será feita a exibição
         spriteBatch.begin();
         
-        float largura = viewport.getWorldWidth();
-        float altura = viewport.getWorldHeight();
-        
-        spriteBatch.draw(background, 0, 0, largura, altura);
+        spriteBatch.draw(background, 0, 0, background.getWidth(), altura);
+        spriteBatch.draw(background, background.getWidth(), 0, background.getWidth(), altura);
+        spriteBatch.draw(background, background.getWidth() * 2, 0, background.getWidth(), altura);
         protaSprite.draw(spriteBatch);
         
         spriteBatch.end();
@@ -79,9 +88,10 @@ public class Main implements ApplicationListener {
     
     private void input(){
         final float chaoY = 0;
-        final int gravidade = 15;
-        final int forcaPulo = 6;
-        float velocidade = 6f;
+        final int gravidade = 100;
+        final int forcaPulo = 60;
+        float velocidade = 30f;
+        final float largura = background.getWidth() * 3;
         
         // DeltaTime = O tempo entre os frames
         float delta = Gdx.graphics.getDeltaTime();
@@ -92,6 +102,10 @@ public class Main implements ApplicationListener {
             
             protaSprite.translateX(velocidade * delta);
             
+            if(protaSprite.getX() > largura - protaSprite.getWidth()){
+                protaSprite.setX(largura - protaSprite.getWidth());
+            }
+            
             if(!olhandoDireita){
                 protaSprite.flip(true, false);
                 olhandoDireita = true;
@@ -100,6 +114,10 @@ public class Main implements ApplicationListener {
         } else if(Gdx.input.isKeyPressed(Input.Keys.A) || Gdx.input.isKeyPressed(Input.Keys.LEFT)){
             
             protaSprite.translateX(-velocidade * delta);
+            
+            if(protaSprite.getX() < 0){
+                protaSprite.setX(0);
+            }
             
             if(olhandoDireita){
                 protaSprite.flip(true, false);

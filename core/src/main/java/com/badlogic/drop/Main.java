@@ -6,8 +6,12 @@ import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.math.Rectangle;
+import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.ScreenUtils;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 
@@ -15,21 +19,71 @@ import com.badlogic.gdx.utils.viewport.FitViewport;
 public class Main implements ApplicationListener {
     private boolean isOnGround = true;
     private boolean olhandoDireita = true;
-    private float velocidadeY = 3f;
+    private boolean isWalking = false;
+    private float velocidadeY = 6f;
+    private float tempoAnim = 0;
     // Instanciando objetos da biblioteca GDX
     private Texture background;
-    private Texture prota;
-    private Sprite protaSprite;
+    private Texture player;
+    private Texture chao;
+    private Texture plataforma;
+    private Texture grade;
+    private Texture run1;
+    private Texture run2;
+    private Texture run3;
+    private Texture run4;
+    private Texture run5;
+    private Texture run6;
+    private Texture run7;
+    private Texture run8;
+    private Sprite playerIdle;
     private FitViewport viewport;
     private SpriteBatch spriteBatch;
     private OrthographicCamera camera;
+    private Rectangle chaoRet;
+    private Array<Rectangle> plataformas;
+    private TextureRegion idleFrame;
+    private Animation<TextureRegion> animCorrer;
     
     @Override
     public void create() {
         // Método para "Construir" o jogo
         // Atribuindo valores aos objetos do tipo "Textura", esses valores são imagem salvas no diretório do projeto
         background = new Texture("fundo.png");
-        prota = new Texture("Valdomir0.png");
+        player = new Texture("Valdomir0.png");
+        chao = new Texture("floor.png");
+        plataforma = new Texture("platform.png");
+        grade = new Texture("grade.png");
+        
+        //Criando texturas que vão dar animação de movimento ao personagem
+        run1 = new Texture("corrida1.png");
+        run2 = new Texture("corrida2.png");
+        run3 = new Texture("corrida3.png");
+        run4 = new Texture("corrida4.png");
+        run5 = new Texture("corrida5.png");
+        run6 = new Texture("corrida6.png");
+        run7 = new Texture("corrida7.png");
+        run8 = new Texture("corrida8.png");
+        
+        TextureRegion frameCorrida1 = new TextureRegion(run1);
+        TextureRegion frameCorrida2 = new TextureRegion(run2);
+        TextureRegion frameCorrida3 = new TextureRegion(run3);
+        TextureRegion frameCorrida4 = new TextureRegion(run4);
+        TextureRegion frameCorrida5 = new TextureRegion(run5);
+        TextureRegion frameCorrida6 = new TextureRegion(run6);
+        TextureRegion frameCorrida7 = new TextureRegion(run7);
+        TextureRegion frameCorrida8 = new TextureRegion(run8);
+        idleFrame = new TextureRegion(player);
+        
+        animCorrer = new Animation<>(0.1f,
+                frameCorrida1,
+                frameCorrida2,
+                frameCorrida3,
+                frameCorrida4,
+                frameCorrida5,
+                frameCorrida6,
+                frameCorrida7,
+                frameCorrida8);
         
         spriteBatch = new SpriteBatch();
         // O objeto "OrthographicCamera" é usado para criar uma câmera dinâmica que segue o personagem horizontalmente
@@ -37,10 +91,18 @@ public class Main implements ApplicationListener {
         // viewport controlará a janela que é usada para visualizarmos e interagirmos com o jogo
         viewport = new FitViewport(100,70, camera);
         
-        // Aqui é criado um sprite do protagonista usando a textura anteriormene atribuida, para que ele possa ser controlado
-        protaSprite = new Sprite(prota);
-        protaSprite.setSize(8, 8);
-        protaSprite.setPosition(0, 0);
+        // Aqui é criado um sprite do playergonista usando a textura anteriormene atribuida, para que ele possa ser controlado
+        playerIdle = new Sprite(player);
+        playerIdle.setSize(8, 8);
+        playerIdle.setPosition(0, 4);
+        
+        // Usamos o objeto "Rectangle" para darmos uma colisão para o chão, a textura é atribuída no objeto "Texture"
+        chaoRet = new Rectangle(0, 0, background.getWidth() * 3, 4);
+        
+        // Cria uma lista de retângulos menores para usarmos de plataformas
+        plataformas = new Array<>();
+        
+        criarPlataformas();
     }
 
     @Override
@@ -54,6 +116,7 @@ public class Main implements ApplicationListener {
 
     @Override
     public void render() {
+        tempoAnim += Gdx.graphics.getDeltaTime();
         // Aqui estão os métodos que serão repetidos em cada frame da aplicação
         draw();
         input();
@@ -61,11 +124,12 @@ public class Main implements ApplicationListener {
     }
     
     private void draw(){
+        // método para "desenhar" o mundo, mostrando todos os elementos gráficos
         // Como o fundo se repete três vezes para dar uma sensação de um mapa grande, colocamos que a largura do mundo é o triplo da largura do fundo
         final float largura = background.getWidth() * 3;
         final float altura = viewport.getWorldHeight();
-        float cameraX = protaSprite.getX() + protaSprite.getWidth() / 2;
-        // método para "desenhar" o mundo, mostrando todos os elementos gráficos
+        float cameraX = playerIdle.getX() + playerIdle.getWidth() / 2;
+        TextureRegion currentFrame;
         //Limpando a tela para começar a exibição
         ScreenUtils.clear(Color.BLACK);
         // Aqui setamos a càmera para acompanhar o sprite do jogador e para parar de seguir nos extremos do mapa
@@ -73,6 +137,18 @@ public class Main implements ApplicationListener {
         cameraX = Math.min(largura - viewport.getWorldWidth() / 2, cameraX);
         camera.position.x = cameraX;
         camera.update();
+        
+        if(isWalking){
+            currentFrame = animCorrer.getKeyFrame(tempoAnim, true);
+        }else{
+            currentFrame = idleFrame;
+        }
+        if(!olhandoDireita && !currentFrame.isFlipX()){
+            currentFrame.flip(true, false);
+        }
+        if(olhandoDireita && currentFrame.isFlipX()){
+            currentFrame.flip(true, false);
+        }
         spriteBatch.setProjectionMatrix(camera.combined);
         // Aqui será feita a exibição
         spriteBatch.begin();
@@ -80,7 +156,16 @@ public class Main implements ApplicationListener {
         spriteBatch.draw(background, 0, 0, background.getWidth(), altura);
         spriteBatch.draw(background, background.getWidth(), 0, background.getWidth(), altura);
         spriteBatch.draw(background, background.getWidth() * 2, 0, background.getWidth(), altura);
-        protaSprite.draw(spriteBatch);
+        for(int i = 0; i < largura; i += 4){
+            spriteBatch.draw(chao, i, 0, 8, 4);
+        }
+        for(int i = 0; i < largura; i +=4){
+            spriteBatch.draw(grade, i, 4, 4, 2);
+        }
+        for(Rectangle pl:plataformas){
+            spriteBatch.draw(plataforma, pl.x, pl.y, pl.width, pl.height);
+        }
+        spriteBatch.draw(currentFrame, playerIdle.getX(), playerIdle.getY(), playerIdle.getWidth(), playerIdle.getHeight());
         
         spriteBatch.end();
         
@@ -91,7 +176,7 @@ public class Main implements ApplicationListener {
         final int gravidade = 100;
         final int forcaPulo = 60;
         float velocidade = 30f;
-        final float largura = background.getWidth() * 3;
+        isWalking = false;
         
         // DeltaTime = O tempo entre os frames
         float delta = Gdx.graphics.getDeltaTime();
@@ -100,52 +185,91 @@ public class Main implements ApplicationListener {
         // Mover o personagem para a direita
         if(Gdx.input.isKeyPressed(Input.Keys.D) || Gdx.input.isKeyPressed(Input.Keys.RIGHT)){
             
-            protaSprite.translateX(velocidade * delta);
-            
-            if(protaSprite.getX() > largura - protaSprite.getWidth()){
-                protaSprite.setX(largura - protaSprite.getWidth());
-            }
+            isWalking = true;
+            playerIdle.translateX(velocidade * delta);
             
             if(!olhandoDireita){
-                protaSprite.flip(true, false);
                 olhandoDireita = true;
             }
           // Mover o personagem para a esquerda
         } else if(Gdx.input.isKeyPressed(Input.Keys.A) || Gdx.input.isKeyPressed(Input.Keys.LEFT)){
             
-            protaSprite.translateX(-velocidade * delta);
-            
-            if(protaSprite.getX() < 0){
-                protaSprite.setX(0);
-            }
+            isWalking = true;
+            playerIdle.translateX(-velocidade * delta);
             
             if(olhandoDireita){
-                protaSprite.flip(true, false);
                 olhandoDireita = false;
             }
             
         } 
         
-        if(Gdx.input.isKeyPressed(Input.Keys.SPACE) && isOnGround){
+        if(Gdx.input.isKeyPressed(Input.Keys.SPACE) && isOnGround || Gdx.input.isKeyPressed(Input.Keys.UP) && isOnGround){
             
             velocidadeY = forcaPulo;
             isOnGround = false;
             
         }
         velocidadeY -= gravidade * delta;
-        protaSprite.setY(protaSprite.getY() + velocidadeY * delta);
-        
-        if(protaSprite.getY() <= chaoY){
-            
-            protaSprite.setY(chaoY);
-            velocidadeY = 0;
-            isOnGround = true;
-        }
+        playerIdle.setY(playerIdle.getY() + velocidadeY * delta);
         
         System.out.println(delta);
     }
     
     private void logic(){
+        final float largura = background.getWidth() * 3;
+        Rectangle playerRet = playerIdle.getBoundingRectangle();
+        isOnGround = false;
+        
+        // Criando colisão entre o personagem e o chão
+        if(playerRet.overlaps(chaoRet) && velocidadeY <= 0){
+            
+            playerIdle.setY(chaoRet.y + chaoRet.height);
+            velocidadeY = 0;
+            isOnGround = true;
+            
+        }
+        
+        // Criando uma colisão entre o personagem e a borda esquerda do mapa
+        if(playerIdle.getX() < 0){
+                playerIdle.setX(0);
+            }
+        
+        // Criando uma colisão entre o personagem e a borda direita do mapa
+        if(playerIdle.getX() > largura - playerIdle.getWidth()){
+                playerIdle.setX(largura - playerIdle.getWidth());
+            }
+        
+        //Criando colisão com cada uma das plataformas com o laço "for"
+        for(Rectangle pl:plataformas){
+            
+            if(playerRet.overlaps(pl) && velocidadeY <= 0){
+                
+                playerIdle.setY(pl.y + pl.height);
+                velocidadeY = 0;
+                isOnGround = true;
+                
+                break;
+            }
+        }
+        
+    }
+    
+    private void criarPlataformas(){
+        
+        plataformas.add(new Rectangle(50, 20, 30, 3));
+        plataformas.add(new Rectangle(65, 35, 30, 3));
+        plataformas.add(new Rectangle(80, 20, 30, 3));
+        plataformas.add(new Rectangle(160, 20, 30, 3));
+        plataformas.add(new Rectangle(190, 35, 30, 3));
+        plataformas.add(new Rectangle(250, 35, 30, 3));
+        plataformas.add(new Rectangle(280, 50, 30, 3));
+        plataformas.add(new Rectangle(280, 20, 30, 3));
+        plataformas.add(new Rectangle(400, 20, 30, 3));
+        plataformas.add(new Rectangle(400, 50, 30, 3));
+        plataformas.add(new Rectangle(430, 35, 30, 3));
+        plataformas.add(new Rectangle(460, 50, 30, 3));
+        plataformas.add(new Rectangle(460, 20, 30, 3));
+        
         
     }
 

@@ -28,6 +28,7 @@ public class Main implements ApplicationListener {
     private Texture chao;
     private Texture plataforma;
     private Texture grade;
+    private Texture inimigo;    
     private Texture run1;
     private Texture run2;
     private Texture run3;
@@ -42,6 +43,7 @@ public class Main implements ApplicationListener {
     private OrthographicCamera camera;
     private Rectangle chaoRet;
     private Array<Rectangle> plataformas;
+    private Array<Inimigo> inimigos;
     private TextureRegion idleFrame;
     private Animation<TextureRegion> animCorrer;
     
@@ -54,6 +56,7 @@ public class Main implements ApplicationListener {
         chao = new Texture("floor.png");
         plataforma = new Texture("platform.png");
         grade = new Texture("grade.png");
+        inimigo = new Texture("fantasma1.png");
         
         //Criando texturas que vão dar animação de movimento ao personagem
         run1 = new Texture("corrida1.png");
@@ -103,6 +106,11 @@ public class Main implements ApplicationListener {
         plataformas = new Array<>();
         
         criarPlataformas();
+        
+        // Cria uma lista de objetos "Inimigo"
+        inimigos = new Array<>();
+        
+        criarInimigos();
     }
 
     @Override
@@ -167,14 +175,17 @@ public class Main implements ApplicationListener {
         }
         spriteBatch.draw(currentFrame, playerIdle.getX(), playerIdle.getY(), playerIdle.getWidth(), playerIdle.getHeight());
         
+        for(Inimigo i : inimigos){
+            i.spriteInimigo.draw(spriteBatch);
+        }
+        
         spriteBatch.end();
         
     }
     
     private void input(){
-        final float chaoY = 0;
         final int gravidade = 100;
-        final int forcaPulo = 60;
+        final int forcaPulo = 65;
         float velocidade = 30f;
         isWalking = false;
         
@@ -212,12 +223,15 @@ public class Main implements ApplicationListener {
         velocidadeY -= gravidade * delta;
         playerIdle.setY(playerIdle.getY() + velocidadeY * delta);
         
-        System.out.println(delta);
+        System.out.println(background.getWidth() * 3);
     }
     
     private void logic(){
         final float largura = background.getWidth() * 3;
         Rectangle playerRet = playerIdle.getBoundingRectangle();
+        float delta = Gdx.graphics.getDeltaTime();
+        float cameraEsq = camera.position.x - viewport.getWorldWidth() / 2;
+        float cameraDir = camera.position.x + viewport.getWorldWidth() / 2;
         isOnGround = false;
         
         // Criando colisão entre o personagem e o chão
@@ -251,6 +265,27 @@ public class Main implements ApplicationListener {
                 break;
             }
         }
+        // Atualizando a movimentação dos inimigos APENAS quando estiver na tela do jogador, também chamando o metodo de resetar caso ele seja atingido
+        for(Inimigo i : inimigos){
+            
+            float inimigoX = i.spriteInimigo.getX();
+            float larguraInimigo = i.spriteInimigo.getWidth();
+            
+            boolean visivel = inimigoX + larguraInimigo >= cameraEsq && inimigoX <= cameraDir;
+            
+            if(visivel){
+                
+                i.atualizar(playerIdle, delta);
+                        
+            }
+            
+            if(i.spriteInimigo.getBoundingRectangle().overlaps(playerIdle.getBoundingRectangle())){
+                
+                reiniciarJogo();
+                break;
+            }
+            
+        }
         
     }
     
@@ -271,6 +306,25 @@ public class Main implements ApplicationListener {
         plataformas.add(new Rectangle(460, 20, 30, 3));
         
         
+    }
+    
+    private void criarInimigos(){
+        inimigos.add(new Inimigo(inimigo, 100, 8));
+        inimigos.add(new Inimigo(inimigo, 120, 8));
+        inimigos.add(new Inimigo(inimigo, 400, 8));
+        inimigos.add(new Inimigo(inimigo, 420, 8));
+        
+    }
+    
+    // Método invocado caso algum inimigo acerte o jogador
+    private void reiniciarJogo(){
+        playerIdle.setPosition(0, 8);
+        velocidadeY = 0;
+        isOnGround = false;
+        
+        for(Inimigo i : inimigos){
+            i.resetar();
+        }
     }
 
     @Override

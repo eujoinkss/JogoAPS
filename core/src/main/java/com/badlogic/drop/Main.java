@@ -28,7 +28,8 @@ public class Main implements ApplicationListener {
     private Texture chao;
     private Texture plataforma;
     private Texture grade;
-    private Texture inimigo;    
+    private Texture inimigo; 
+    private Texture projetil;
     private Texture run1;
     private Texture run2;
     private Texture run3;
@@ -57,6 +58,7 @@ public class Main implements ApplicationListener {
         plataforma = new Texture("platform.png");
         grade = new Texture("grade.png");
         inimigo = new Texture("fantasma1.png");
+        projetil = new Texture("projectile.png");
         
         //Criando texturas que vão dar animação de movimento ao personagem
         run1 = new Texture("corrida1.png");
@@ -175,8 +177,22 @@ public class Main implements ApplicationListener {
         }
         spriteBatch.draw(currentFrame, playerIdle.getX(), playerIdle.getY(), playerIdle.getWidth(), playerIdle.getHeight());
         
-        for(Inimigo i : inimigos){
+        for(int idx = 0; idx < inimigos.size; idx++){
+            
+            Inimigo i = inimigos.get(idx);
             i.spriteInimigo.draw(spriteBatch);
+            
+            if(i instanceof Atirador){
+                
+                Atirador a = (Atirador) i;
+                
+                for(int j = 0; j < a.getProjeteis().size; j++){
+                    
+                    Projetil p = a.getProjeteis().get(j);
+                    
+                    p.projetilSprite.draw(spriteBatch);
+                }
+            }
         }
         
         spriteBatch.end();
@@ -266,7 +282,9 @@ public class Main implements ApplicationListener {
             }
         }
         // Atualizando a movimentação dos inimigos APENAS quando estiver na tela do jogador, também chamando o metodo de resetar caso ele seja atingido
-        for(Inimigo i : inimigos){
+        for(int idx = 0; idx < inimigos.size; idx++){
+            
+            Inimigo i = inimigos.get(idx);
             
             float inimigoX = i.spriteInimigo.getX();
             float larguraInimigo = i.spriteInimigo.getWidth();
@@ -278,11 +296,29 @@ public class Main implements ApplicationListener {
                 i.atualizar(playerIdle, delta);
                         
             }
+            if(i instanceof Atirador){
+                Atirador a = (Atirador) i;
+                a.atualizarProjetil(delta, largura);
+            }
             
             if(i.spriteInimigo.getBoundingRectangle().overlaps(playerIdle.getBoundingRectangle())){
                 
                 reiniciarJogo();
                 break;
+            }
+            
+            if(i instanceof Atirador){
+                
+                Atirador a = (Atirador) i;
+                
+                for(int j = 0; j < a.getProjeteis().size; j++){
+                    
+                    if(a.getProjeteis().get(j).projetilSprite.getBoundingRectangle().overlaps(playerIdle.getBoundingRectangle())){
+                        
+                        reiniciarJogo();
+                        break;
+                    }
+                }
             }
             
         }
@@ -309,11 +345,16 @@ public class Main implements ApplicationListener {
     }
     
     private void criarInimigos(){
-        inimigos.add(new Inimigo(inimigo, 100, 8));
-        inimigos.add(new Inimigo(inimigo, 120, 8));
-        inimigos.add(new Inimigo(inimigo, 400, 8));
-        inimigos.add(new Inimigo(inimigo, 420, 8));
-        
+        inimigos.add(new Lutador(inimigo, 100, 4));
+        inimigos.add(new Lutador(inimigo, 120, 4));
+        inimigos.add(new Lutador(inimigo, 280, 4));
+        inimigos.add(new Lutador(inimigo, 310, 4));
+        inimigos.add(new Lutador(inimigo, 410, 4));
+        inimigos.add(new Atirador(inimigo, projetil, 80, 39));
+        inimigos.add(new Atirador(inimigo, projetil, 265, 39));
+        inimigos.add(new Atirador(inimigo, projetil, 295, 54));
+        inimigos.add(new Atirador(inimigo, projetil, 415, 54));
+        inimigos.add(new Atirador(inimigo, projetil, 475, 54));
     }
     
     // Método invocado caso algum inimigo acerte o jogador
@@ -324,6 +365,12 @@ public class Main implements ApplicationListener {
         
         for(Inimigo i : inimigos){
             i.resetar();
+            
+            if(i instanceof Atirador){
+                Atirador a = (Atirador) i;
+                
+                a.limparProjeteis();
+            }
         }
     }
 

@@ -11,10 +11,9 @@ import com.badlogic.gdx.graphics.g2d.Sprite;
  *
  * @author julro
  */
-public class Inimigo {
+public abstract class Inimigo {
     public Sprite spriteInimigo;
-    public float velocidade = 18f;
-    public boolean olhandoDireita = true;
+    protected float velocidade;
     public float spawnX;
     public float spawnY;
     
@@ -28,24 +27,7 @@ public class Inimigo {
         
     }
     
-    public void atualizar(Sprite jogador, float delta){
-        
-        float playerX = jogador.getX();
-        float enemyX = spriteInimigo.getX();
-        float distancia = Math.abs(playerX - enemyX);
-        
-        if(distancia > 2){
-            if(playerX > enemyX){
-                spriteInimigo.translateX(velocidade * delta);
-                olhandoDireita = true;
-            }
-            if(playerX < enemyX){
-                spriteInimigo.translateX( -velocidade * delta);
-                olhandoDireita = false;
-            }
-        }
-                
-    }
+    public abstract void atualizar(Sprite jogador, float delta);
     
     public void resetar(){
         spriteInimigo.setPosition(spawnX, spawnY);

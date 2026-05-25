@@ -23,6 +23,7 @@ public class Main implements ApplicationListener {
     private float velocidadeY = 6f;
     private float tempoAnim = 0;
     private float tempoTiro = 0;
+    private boolean vitoria = false;
     // Instanciando objetos da biblioteca GDX
     private Texture background;
     private Texture player;
@@ -47,6 +48,7 @@ public class Main implements ApplicationListener {
     private Texture ranged1;
     private Texture ranged2;
     private Texture ranged3;
+    private Texture telaFinal;
     private Sprite playerIdle;
     private FitViewport viewport;
     private SpriteBatch spriteBatch;
@@ -71,6 +73,7 @@ public class Main implements ApplicationListener {
         grade = new Texture("grade.png");
         inimigo = new Texture("fantasma1.png");
         projetil = new Texture("projectile.png");
+        telaFinal = new Texture("telaVitoria.png");
         
         //Criando texturas que vão dar animação de movimento ao personagem
         run1 = new Texture("corrida1.png");
@@ -251,6 +254,11 @@ public class Main implements ApplicationListener {
             projeteisPlayer.get(i).projetilSprite.draw(spriteBatch);
         }
         
+        if(vitoria){
+            
+            spriteBatch.draw(telaFinal, camera.position.x - 35, 10, 70, 50);
+        }
+        
         spriteBatch.end();
         
     }
@@ -260,6 +268,11 @@ public class Main implements ApplicationListener {
         final int forcaPulo = 65;
         float velocidade = 30f;
         isWalking = false;
+        
+        // Impede o jogador de se mover após vencer
+        if(vitoria){
+            return;
+        }
         
         // DeltaTime = O tempo entre os frames
         float delta = Gdx.graphics.getDeltaTime();
@@ -444,6 +457,8 @@ public class Main implements ApplicationListener {
             }
         }
         
+        verificarVitoria();
+        
     }
     
     private void criarPlataformas(){
@@ -499,6 +514,22 @@ public class Main implements ApplicationListener {
                 a.limparProjeteis();
             }
         }
+    }
+    
+    private void verificarVitoria(){
+        
+        boolean inimigosMortos = true;
+        
+        for(int i = 0; i < inimigos.size; i++){
+            
+            if(inimigos.get(i).vivo){
+                
+                inimigosMortos = false;
+                break;
+            }
+        }
+        
+        vitoria = inimigosMortos;
     }
 
     @Override

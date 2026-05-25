@@ -43,7 +43,11 @@ public class Atirador extends Inimigo {
             
             float velocidadeProjetil = 50f;
             
-            projeteis.add(new Projetil(texturaProjetil, spriteInimigo.getX(), spriteInimigo.getY() + 3, distanciaX * velocidadeProjetil, distanciaY * velocidadeProjetil));
+            projeteis.add(new Projetil(texturaProjetil, 
+                    spriteInimigo.getX(), 
+                    spriteInimigo.getY() + 3, 
+                    distanciaX * velocidadeProjetil, 
+                    distanciaY * velocidadeProjetil));
             
             tempoTiro = 0;
         }

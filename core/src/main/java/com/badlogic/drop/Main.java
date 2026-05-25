@@ -186,8 +186,9 @@ public class Main implements ApplicationListener {
     }
     
     private void draw(){
-        // método para "desenhar" o mundo, mostrando todos os elementos gráficos
-        // Como o fundo se repete três vezes para dar uma sensação de um mapa grande, colocamos que a largura do mundo é o triplo da largura do fundo
+        /* método para "desenhar" o mundo, mostrando todos os elementos gráficos
+         Como o fundo se repete três vezes para dar uma sensação de um mapa grande, 
+        colocamos que a largura do mundo é o triplo da largura do fundo */
         final float largura = background.getWidth() * 3;
         final float altura = viewport.getWorldHeight();
         float cameraX = playerIdle.getX() + playerIdle.getWidth() / 2;
@@ -227,7 +228,10 @@ public class Main implements ApplicationListener {
         for(Rectangle pl:plataformas){
             spriteBatch.draw(plataforma, pl.x, pl.y, pl.width, pl.height);
         }
-        spriteBatch.draw(currentFrame, playerIdle.getX(), playerIdle.getY(), playerIdle.getWidth(), playerIdle.getHeight());
+        spriteBatch.draw(currentFrame, playerIdle.getX(), 
+                playerIdle.getY(), 
+                playerIdle.getWidth(), 
+                playerIdle.getHeight());
         
         for(int idx = 0; idx < inimigos.size; idx++){
             
@@ -235,7 +239,10 @@ public class Main implements ApplicationListener {
             if(!i.vivo){
                 continue;
             }
-            spriteBatch.draw(i.getFrame(), i.spriteInimigo.getX(), i.spriteInimigo.getY(), i.spriteInimigo.getWidth(), i.spriteInimigo.getHeight());
+            spriteBatch.draw(i.getFrame(), i.spriteInimigo.getX(), 
+                    i.spriteInimigo.getY(), 
+                    i.spriteInimigo.getWidth(), 
+                    i.spriteInimigo.getHeight());
             
             if(i instanceof Atirador){
                 
@@ -312,7 +319,11 @@ public class Main implements ApplicationListener {
             float velocidadeTiro = 80f;
             float dir = olhandoDireita ? 1 : -1;
             
-            projeteisPlayer.add(new Projetil(projetil, playerIdle.getX() + playerIdle.getWidth() / 2, playerIdle.getY() + playerIdle.getHeight() / 2, velocidadeTiro * dir, 0));
+            projeteisPlayer.add(new Projetil(projetil, 
+                    playerIdle.getX() + playerIdle.getWidth() / 2, 
+                    playerIdle.getY() + playerIdle.getHeight() / 2, 
+                    velocidadeTiro * dir, 
+                    0));
             
             tempoTiro = 0;
         }
@@ -360,7 +371,8 @@ public class Main implements ApplicationListener {
                 break;
             }
         }
-        // Atualizando a movimentação dos inimigos APENAS quando estiver na tela do jogador, também chamando o metodo de resetar caso ele seja atingido
+        /* Atualizando a movimentação dos inimigos APENAS quando estiver na tela do jogador, 
+        também chamando o metodo de resetar caso ele seja atingido */
         for(int idx = 0; idx < inimigos.size; idx++){
             
             Inimigo i = inimigos.get(idx);

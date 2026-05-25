@@ -21,6 +21,7 @@ public abstract class Inimigo {
     protected Animation<TextureRegion> anim;
     protected float tempoAnim;
     protected TextureRegion currentFrame;
+    public boolean vivo = true;
     
     public Inimigo(Texture textura, Animation<TextureRegion> anim, float x, float y){
         
@@ -48,6 +49,7 @@ public abstract class Inimigo {
     
     public void resetar(){
         spriteInimigo.setPosition(spawnX, spawnY);
+        vivo = true;
     }
     
 }

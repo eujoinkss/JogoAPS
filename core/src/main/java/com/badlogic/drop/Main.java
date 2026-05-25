@@ -22,6 +22,7 @@ public class Main implements ApplicationListener {
     private boolean isWalking = false;
     private float velocidadeY = 6f;
     private float tempoAnim = 0;
+    private float tempoTiro = 0;
     // Instanciando objetos da biblioteca GDX
     private Texture background;
     private Texture player;
@@ -57,6 +58,7 @@ public class Main implements ApplicationListener {
     private Animation<TextureRegion> animCorrer;
     private Animation<TextureRegion> animMelee;
     private Animation<TextureRegion> animRanged;
+    private Array<Projetil> projeteisPlayer;
     
     @Override
     public void create() {
@@ -156,6 +158,8 @@ public class Main implements ApplicationListener {
         inimigos = new Array<>();
         
         criarInimigos();
+        
+        projeteisPlayer = new Array<>();
     }
 
     @Override
@@ -169,7 +173,9 @@ public class Main implements ApplicationListener {
 
     @Override
     public void render() {
-        tempoAnim += Gdx.graphics.getDeltaTime();
+        float delta = Gdx.graphics.getDeltaTime();
+        tempoAnim += delta;
+        tempoTiro += delta;
         // Aqui estão os métodos que serão repetidos em cada frame da aplicação
         input();
         logic();
@@ -223,6 +229,9 @@ public class Main implements ApplicationListener {
         for(int idx = 0; idx < inimigos.size; idx++){
             
             Inimigo i = inimigos.get(idx);
+            if(!i.vivo){
+                continue;
+            }
             spriteBatch.draw(i.getFrame(), i.spriteInimigo.getX(), i.spriteInimigo.getY(), i.spriteInimigo.getWidth(), i.spriteInimigo.getHeight());
             
             if(i instanceof Atirador){
@@ -236,6 +245,10 @@ public class Main implements ApplicationListener {
                     p.projetilSprite.draw(spriteBatch);
                 }
             }
+        }
+        
+        for(int i = 0; i < projeteisPlayer.size; i++){
+            projeteisPlayer.get(i).projetilSprite.draw(spriteBatch);
         }
         
         spriteBatch.end();
@@ -273,16 +286,26 @@ public class Main implements ApplicationListener {
             
         } 
         
+        // Fazer o personagem pular
         if(Gdx.input.isKeyPressed(Input.Keys.SPACE) && isOnGround || Gdx.input.isKeyPressed(Input.Keys.UP) && isOnGround){
             
             velocidadeY = forcaPulo;
             isOnGround = false;
             
         }
+        
+        // Fazer o jogador atirar
+        if(Gdx.input.isButtonJustPressed(Input.Buttons.LEFT) && tempoTiro >= 0.5f){
+            float velocidadeTiro = 80f;
+            float dir = olhandoDireita ? 1 : -1;
+            
+            projeteisPlayer.add(new Projetil(projetil, playerIdle.getX() + playerIdle.getWidth() / 2, playerIdle.getY() + playerIdle.getHeight() / 2, velocidadeTiro * dir, 0));
+            
+            tempoTiro = 0;
+        }
+        
         velocidadeY -= gravidade * delta;
         playerIdle.setY(playerIdle.getY() + velocidadeY * delta);
-        
-        System.out.println(background.getWidth() * 3);
     }
     
     private void logic(){
@@ -329,10 +352,18 @@ public class Main implements ApplicationListener {
             
             Inimigo i = inimigos.get(idx);
             
+            if(!i.vivo){
+                continue;
+            }
+            
             float inimigoX = i.spriteInimigo.getX();
             float larguraInimigo = i.spriteInimigo.getWidth();
             
             boolean visivel = inimigoX + larguraInimigo >= cameraEsq && inimigoX <= cameraDir;
+            
+            if(!visivel){
+                continue;
+            }
             
             if(visivel){
                 
@@ -344,12 +375,14 @@ public class Main implements ApplicationListener {
                 a.atualizarProjetil(delta, largura);
             }
             
+            // Reiniciar jogo caso o player colida com um inimigo
             if(i.spriteInimigo.getBoundingRectangle().overlaps(playerIdle.getBoundingRectangle())){
                 
                 reiniciarJogo();
                 break;
             }
             
+            // Reiniciar o jogo caso uma bala atinja o player
             if(i instanceof Atirador){
                 
                 Atirador a = (Atirador) i;
@@ -364,6 +397,51 @@ public class Main implements ApplicationListener {
                 }
             }
             
+            for(int j = projeteisPlayer.size - 1; j >= 0; j--){
+                Projetil tiroPlayer = projeteisPlayer.get(j);
+                
+                if(tiroPlayer.projetilSprite.getBoundingRectangle().overlaps(i.spriteInimigo.getBoundingRectangle())){
+                    
+                    projeteisPlayer.removeIndex(j);
+                    i.vivo = false;
+                    break;
+                    
+                }
+            }
+            
+            if(i instanceof Atirador){
+                
+                Atirador a = (Atirador) i;
+                
+                for(int k = a.getProjeteis().size - 1; k >= 0; k--){
+                    
+                    Projetil tiroInimigo = a.getProjeteis().get(k);
+                    
+                    for(int l = projeteisPlayer.size - 1; l >= 0; l--){
+                        
+                        Projetil tiroPlayer = projeteisPlayer.get(l);
+                        
+                        if(tiroPlayer.projetilSprite.getBoundingRectangle().overlaps(tiroInimigo.projetilSprite.getBoundingRectangle())){
+                            
+                            projeteisPlayer.removeIndex(l);
+                            a.getProjeteis().removeIndex(k);
+                            break;
+                        }
+                    }
+                    
+                }
+            }
+            
+        }
+        
+        for(int i = projeteisPlayer.size - 1; i >= 0; i--){
+            
+            Projetil p = projeteisPlayer.get(i);
+            p.atualizar(delta);
+            
+            if(p.projetilSprite.getX() > largura || p.projetilSprite.getX() < 0){
+                projeteisPlayer.removeIndex(i);
+            }
         }
         
     }
@@ -383,6 +461,8 @@ public class Main implements ApplicationListener {
         plataformas.add(new Rectangle(430, 35, 30, 3));
         plataformas.add(new Rectangle(460, 50, 30, 3));
         plataformas.add(new Rectangle(460, 20, 30, 3));
+        plataformas.add(new Rectangle(570, 35, 30, 3));
+        plataformas.add(new Rectangle(520, 35, 30, 3));
         
         
     }
@@ -398,6 +478,10 @@ public class Main implements ApplicationListener {
         inimigos.add(new Atirador(ranged1, animRanged, projetil, 295, 54));
         inimigos.add(new Atirador(ranged1, animRanged, projetil, 415, 54));
         inimigos.add(new Atirador(ranged1, animRanged, projetil, 475, 54));
+        inimigos.add(new Atirador(ranged1, animRanged, projetil, 585, 39));
+        inimigos.add(new Lutador(melee1, animMelee, 520, 4));
+        inimigos.add(new Lutador(melee1, animMelee, 530, 4));
+        inimigos.add(new Lutador(melee1, animMelee, 540, 4));
     }
     
     // Método invocado caso algum inimigo acerte o jogador

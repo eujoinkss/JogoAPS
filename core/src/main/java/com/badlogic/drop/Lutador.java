@@ -5,7 +5,9 @@
 package com.badlogic.drop;
 
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.Sprite;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
 
 /**
  *
@@ -13,13 +15,15 @@ import com.badlogic.gdx.graphics.g2d.Sprite;
  */
 public class Lutador extends Inimigo {
     
-    public Lutador(Texture textura, float x, float y){
-        super(textura, x, y);
+    public Lutador(Texture textura, Animation<TextureRegion> anim, float x, float y){
+        super(textura, anim, x, y);
         velocidade = 18f;
+        spriteInimigo.setSize(8, 8);
     };
     
     @Override
     public void atualizar(Sprite jogador, float delta){
+        atualizarAnimacao(delta);
         float playerX = jogador.getX();
         float enemyX = spriteInimigo.getX();
         float distancia = Math.abs(playerX - enemyX);

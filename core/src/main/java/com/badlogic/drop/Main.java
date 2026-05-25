@@ -38,6 +38,14 @@ public class Main implements ApplicationListener {
     private Texture run6;
     private Texture run7;
     private Texture run8;
+    private Texture melee1;
+    private Texture melee2;
+    private Texture melee3;
+    private Texture melee4;
+    private Texture melee5;
+    private Texture ranged1;
+    private Texture ranged2;
+    private Texture ranged3;
     private Sprite playerIdle;
     private FitViewport viewport;
     private SpriteBatch spriteBatch;
@@ -47,6 +55,8 @@ public class Main implements ApplicationListener {
     private Array<Inimigo> inimigos;
     private TextureRegion idleFrame;
     private Animation<TextureRegion> animCorrer;
+    private Animation<TextureRegion> animMelee;
+    private Animation<TextureRegion> animRanged;
     
     @Override
     public void create() {
@@ -80,6 +90,27 @@ public class Main implements ApplicationListener {
         TextureRegion frameCorrida8 = new TextureRegion(run8);
         idleFrame = new TextureRegion(player);
         
+        melee1 = new Texture("melee1.png");
+        melee2 = new Texture("melee2.png");
+        melee3 = new Texture("melee3.png");
+        melee4 = new Texture("melee4.png");
+        melee5 = new Texture("melee5.png");
+        
+        TextureRegion frameMelee1 = new TextureRegion(melee1);
+        TextureRegion frameMelee2 = new TextureRegion(melee2);
+        TextureRegion frameMelee3 = new TextureRegion(melee3);
+        TextureRegion frameMelee4 = new TextureRegion(melee4);
+        TextureRegion frameMelee5 = new TextureRegion(melee5);
+        
+        ranged1 = new Texture("fantasma1.png");
+        ranged2 = new Texture("fantasma2.png");
+        ranged3 = new Texture("fantasma3.png");
+        
+        TextureRegion frameRanged1 = new TextureRegion(ranged1);
+        TextureRegion frameRanged2 = new TextureRegion(ranged2);
+        TextureRegion frameRanged3 = new TextureRegion(ranged3);
+        
+        
         animCorrer = new Animation<>(0.1f,
                 frameCorrida1,
                 frameCorrida2,
@@ -89,6 +120,18 @@ public class Main implements ApplicationListener {
                 frameCorrida6,
                 frameCorrida7,
                 frameCorrida8);
+        
+        animMelee = new Animation<>(0.3f,
+                frameMelee1,
+                frameMelee2,
+                frameMelee3,
+                frameMelee4,
+                frameMelee5);
+        
+        animRanged = new Animation<>(0.3f,
+                frameRanged1,
+                frameRanged2,
+                frameRanged3);
         
         spriteBatch = new SpriteBatch();
         // O objeto "OrthographicCamera" é usado para criar uma câmera dinâmica que segue o personagem horizontalmente
@@ -128,9 +171,9 @@ public class Main implements ApplicationListener {
     public void render() {
         tempoAnim += Gdx.graphics.getDeltaTime();
         // Aqui estão os métodos que serão repetidos em cada frame da aplicação
-        draw();
         input();
         logic();
+        draw();
     }
     
     private void draw(){
@@ -180,7 +223,7 @@ public class Main implements ApplicationListener {
         for(int idx = 0; idx < inimigos.size; idx++){
             
             Inimigo i = inimigos.get(idx);
-            i.spriteInimigo.draw(spriteBatch);
+            spriteBatch.draw(i.getFrame(), i.spriteInimigo.getX(), i.spriteInimigo.getY(), i.spriteInimigo.getWidth(), i.spriteInimigo.getHeight());
             
             if(i instanceof Atirador){
                 
@@ -345,16 +388,16 @@ public class Main implements ApplicationListener {
     }
     
     private void criarInimigos(){
-        inimigos.add(new Lutador(inimigo, 100, 4));
-        inimigos.add(new Lutador(inimigo, 120, 4));
-        inimigos.add(new Lutador(inimigo, 280, 4));
-        inimigos.add(new Lutador(inimigo, 310, 4));
-        inimigos.add(new Lutador(inimigo, 410, 4));
-        inimigos.add(new Atirador(inimigo, projetil, 80, 39));
-        inimigos.add(new Atirador(inimigo, projetil, 265, 39));
-        inimigos.add(new Atirador(inimigo, projetil, 295, 54));
-        inimigos.add(new Atirador(inimigo, projetil, 415, 54));
-        inimigos.add(new Atirador(inimigo, projetil, 475, 54));
+        inimigos.add(new Lutador(melee1, animMelee, 100, 4));
+        inimigos.add(new Lutador(melee1, animMelee, 120, 4));
+        inimigos.add(new Lutador(melee1, animMelee, 280, 4));
+        inimigos.add(new Lutador(melee1, animMelee, 310, 4));
+        inimigos.add(new Lutador(melee1, animMelee, 410, 4));
+        inimigos.add(new Atirador(ranged1, animRanged, projetil, 80, 39));
+        inimigos.add(new Atirador(ranged1, animRanged, projetil, 265, 39));
+        inimigos.add(new Atirador(ranged1, animRanged, projetil, 295, 54));
+        inimigos.add(new Atirador(ranged1, animRanged, projetil, 415, 54));
+        inimigos.add(new Atirador(ranged1, animRanged, projetil, 475, 54));
     }
     
     // Método invocado caso algum inimigo acerte o jogador

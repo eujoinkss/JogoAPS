@@ -5,7 +5,9 @@
 package com.badlogic.drop;
 
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.Sprite;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.utils.Array;
 
 /**
@@ -17,15 +19,17 @@ public class Atirador extends Inimigo {
     private Texture texturaProjetil;
     private Array<Projetil> projeteis;
 
-    public Atirador(Texture textura, Texture texturaProjetil, float x, float y){
-        super(textura, x, y);
+    public Atirador(Texture textura, Animation anim, Texture texturaProjetil, float x, float y){
+        super(textura, anim, x, y);
         this.texturaProjetil = texturaProjetil;
         velocidade = 0;
+        spriteInimigo.setSize(6, 10);
         projeteis = new Array<>();
     }
 
     @Override
     public void atualizar(Sprite jogador, float delta){
+        atualizarAnimacao(delta);
         tempoTiro += delta;
         
         if(tempoTiro >= 1f){
